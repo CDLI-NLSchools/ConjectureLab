@@ -315,7 +315,7 @@ function exploreSquares(rng) {
     context: "Each value counts the unit squares in a square arrangement with side length n.",
     rule: "The value for case n is n x n, the square numbers.",
     params: {},
-    viz: "tiles",
+    viz: "squareGrid",
     valueAt: valueAt,
     cases: buildCases(start, 5, valueAt)
   });
@@ -328,7 +328,7 @@ function exploreTriangular(rng) {
     context: "Each value counts the dots in a triangular arrangement with n rows: 1 dot, then 2, then 3, and so on.",
     rule: "The value for case n is 1 + 2 + ... + n, which equals n x (n + 1) / 2.",
     params: {},
-    viz: "tiles",
+    viz: "triDots",
     valueAt: valueAt,
     cases: buildCases(1, 5, valueAt)
   });
@@ -352,15 +352,16 @@ function exploreAlternating(rng) {
   });
 }
 function exploreMatchsticks(rng) {
-  var slope = rPick(rng, [2, 3, 4]), intercept = rInt(rng, 1, 3);
-  var valueAt = function (n) { return slope * n + intercept; };
+  var shape = rPick(rng, ["triangles", "squares", "pentagons"]);
+  var slope = shape === "triangles" ? 2 : (shape === "squares" ? 3 : 4);
+  var valueAt = function (n) { return slope * n + 1; };
   return finishExplore({
     familyId: "figuralLinear",
-    title: "Figural pattern: matchstick figures in a row",
-    context: "Figure n is built from matchsticks. Each new figure shares one side with the figure before it, and the count of matchsticks is recorded for each figure.",
-    rule: "Figure n uses " + slope + " x n + " + intercept + " matchsticks: a starting piece plus " + slope + " new matchsticks for each figure.",
-    params: { slope: slope, intercept: intercept },
-    viz: "tiles",
+    title: "Figural pattern: matchstick " + shape + " in a row",
+    context: "Figure n is a row of n " + shape + " built from matchsticks. Each new shape shares one side with the shape before it, and the count of matchsticks is recorded for each figure.",
+    rule: "Figure n uses " + slope + " x n + 1 matchsticks: the first shape takes " + (slope + 1) + " matchsticks, and each shape after it shares one side, so it adds only " + slope + " new matchsticks.",
+    params: { slope: slope, intercept: 1, shape: shape },
+    viz: "matchsticks",
     valueAt: valueAt,
     cases: buildCases(1, 5, valueAt, function (n) { return "Figure " + n; })
   });
@@ -370,11 +371,11 @@ function exploreTileRow(rng) {
   var valueAt = function (n) { return slope * n + intercept; };
   return finishExplore({
     familyId: "figuralLinear",
-    title: "Figural pattern: tiles in a growing frame",
-    context: "A frame is built around a row of tiles. Stage n of the build is recorded, along with the total number of tiles used so far at that stage.",
+    title: "Figural pattern: a growing block of tiles",
+    context: "Tiles are laid in a solid block that is " + slope + " rows tall. At stage n the block is n columns wide" + (intercept ? ", with " + intercept + " extra tile" + (intercept > 1 ? "s" : "") + " starting the next column" : "") + ". The total number of tiles is recorded at each stage.",
     rule: "Stage n uses " + slope + " x n" + (intercept ? " + " + intercept : "") + " tiles in total.",
     params: { slope: slope, intercept: intercept },
-    viz: "tiles",
+    viz: "tileBlock",
     valueAt: valueAt,
     cases: buildCases(1, 5, valueAt, function (n) { return "Stage " + n; })
   });
@@ -392,7 +393,7 @@ function exploreFiguralQuadratic(rng) {
       : "Figure n is a rectangle of tiles, n tiles wide and one row taller than it is wide. The count of tiles is recorded for each figure.",
     rule: form === "square" ? "Figure n uses n x n tiles." : "Figure n uses n x (n + 1) tiles.",
     params: { form: form },
-    viz: "tiles",
+    viz: "figGrid",
     valueAt: valueAt,
     cases: buildCases(1, 5, valueAt, function (n) { return "Figure " + n; })
   });
@@ -445,7 +446,7 @@ function explorePyramidCans(rng) {
     context: "Cans are stacked in a flat pyramid against a wall: 1 can on the top layer, 2 on the next, 3 on the next, and so on. The table records the total number of cans in a pyramid with n layers.",
     rule: "A pyramid with n layers holds 1 + 2 + ... + n cans, which equals n x (n + 1) / 2.",
     params: {},
-    viz: "tiles",
+    viz: "pyramid",
     valueAt: valueAt,
     cases: buildCases(1, 5, valueAt, function (n) { return n + (n === 1 ? " layer" : " layers"); })
   });
@@ -691,17 +692,103 @@ $("printBtn").addEventListener("click", function () { window.print(); });
 
 // ---- Mode 1 UI: Explore ----
 
+function svgOpen(w, h, label) {
+  return '<svg width="' + Math.round(w) + '" height="' + Math.round(h) + '" viewBox="0 0 ' + Math.round(w) + ' ' + Math.round(h) + '" role="img" aria-label="' + esc(label) + '">';
+}
+function gridFigure(cols, rows, partialLastCol, label) {
+  var u = 13, g = 2, w = cols * (u + g) + g, h = rows * (u + g) + g;
+  var out = svgOpen(w, h, label);
+  for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+    var extra = partialLastCol >= 0 && c === cols - 1;
+    if (extra && r >= partialLastCol) continue;
+    out += "<rect x=\"" + (g + c * (u + g)) + "\" y=\"" + (g + r * (u + g)) + "\" width=\"" + u + "\" height=\"" + u + "\" rx=\"2\" fill=\"" + (extra ? "#f2b01e" : "#0b5cad") + "\"/>";
+  }
+  return out + "</svg>";
+}
+function dotRowsFigure(n, cans, label) {
+  var d = 15, rad = cans ? 6 : 5, w = n * d + 6, h = n * d + 6;
+  var out = svgOpen(w, h, label);
+  for (var r = 1; r <= n; r++) {
+    var x0 = (w - (r - 1) * d) / 2, y = 3 + (r - 0.5) * d;
+    for (var i = 0; i < r; i++) {
+      out += "<circle cx=\"" + (x0 + i * d) + "\" cy=\"" + y + "\" r=\"" + rad + "\" fill=\"" + (cans ? "#f2b01e" : "#0b5cad") + "\"" + (cans ? " stroke=\"#8a5a00\" stroke-width=\"1\"" : "") + "/>";
+    }
+  }
+  return out + "</svg>";
+}
+function matchFigure(shape, n, label) {
+  var edges = {}, pts = [], ptMap = {};
+  function pt(x, y) {
+    var key = x + "," + y;
+    if (ptMap[key] === undefined) { ptMap[key] = pts.length; pts.push([x, y]); }
+    return ptMap[key];
+  }
+  function edge(a, b) { edges[Math.min(a, b) + "-" + Math.max(a, b)] = [a, b]; }
+  var k, s = 18;
+  if (shape === "squares") {
+    for (k = 0; k < n; k++) {
+      var x = k * s, a = pt(x, 0), b = pt(x + s, 0), c = pt(x + s, s), d = pt(x, s);
+      edge(a, b); edge(b, c); edge(c, d); edge(d, a);
+    }
+  } else if (shape === "triangles") {
+    var w = 9, hh = 16;
+    for (k = 0; k < n; k++) {
+      if (k % 2 === 0) {
+        var j = k / 2, t1 = pt(2 * j * w, hh), t2 = pt((2 * j + 2) * w, hh), t3 = pt((2 * j + 1) * w, 0);
+        edge(t1, t2); edge(t2, t3); edge(t3, t1);
+      } else {
+        var m = (k - 1) / 2, u1 = pt((2 * m + 1) * w, 0), u2 = pt((2 * m + 2) * w, hh), u3 = pt((2 * m + 3) * w, 0);
+        edge(u1, u2); edge(u2, u3); edge(u3, u1);
+      }
+    }
+  } else {
+    var bw = 17, wall = 12, roof = 10;
+    for (k = 0; k < n; k++) {
+      var bx = k * bw, p1 = pt(bx, roof + wall), p2 = pt(bx + bw, roof + wall), p3 = pt(bx + bw, roof), p4 = pt(bx + bw / 2, 0), p5 = pt(bx, roof);
+      edge(p1, p2); edge(p2, p3); edge(p3, p4); edge(p4, p5); edge(p5, p1);
+    }
+  }
+  var maxX = 0, maxY = 0;
+  pts.forEach(function (p) { if (p[0] > maxX) maxX = p[0]; if (p[1] > maxY) maxY = p[1]; });
+  var pad = 4, out = svgOpen(maxX + pad * 2, maxY + pad * 2, label);
+  Object.keys(edges).forEach(function (key) {
+    var e = edges[key], A = pts[e[0]], B = pts[e[1]];
+    out += "<line x1=\"" + (A[0] + pad) + "\" y1=\"" + (A[1] + pad) + "\" x2=\"" + (B[0] + pad) + "\" y2=\"" + (B[1] + pad) + "\" stroke=\"#a06a35\" stroke-width=\"3.5\" stroke-linecap=\"round\"/>";
+    out += "<circle cx=\"" + (A[0] + pad) + "\" cy=\"" + (A[1] + pad) + "\" r=\"2.6\" fill=\"#b3261e\"/>";
+  });
+  return out + "</svg>";
+}
+function figureFor(round, c) {
+  var n = c.n, p = round.params || {};
+  switch (round.viz) {
+    case "squareGrid":
+      return gridFigure(n, n, -1, "A square arrangement of " + c.value + " unit squares, " + n + " by " + n);
+    case "figGrid":
+      return p.form === "square"
+        ? gridFigure(n, n, -1, "A square arrangement of " + c.value + " tiles, " + n + " by " + n)
+        : gridFigure(n, n + 1, -1, "A rectangle of " + c.value + " tiles, " + n + " wide and " + (n + 1) + " tall");
+    case "tileBlock":
+      return gridFigure(n + (p.intercept ? 1 : 0), p.slope, p.intercept ? p.intercept : -1,
+        "A block of " + c.value + " tiles, " + p.slope + " rows tall and " + n + " columns wide" + (p.intercept ? ", with " + p.intercept + " extra tiles starting the next column" : ""));
+    case "triDots":
+      return dotRowsFigure(n, false, "A triangular arrangement of " + c.value + " dots in " + n + " rows");
+    case "pyramid":
+      return dotRowsFigure(n, true, "A pyramid of " + c.value + " cans in " + n + " layers");
+    case "matchsticks":
+      return matchFigure(p.shape, n, "Figure " + n + ": " + c.value + " matchsticks in a row of " + n + " " + p.shape);
+  }
+  return "";
+}
 function renderViz(round) {
   var wrap = $("eViz");
   wrap.innerHTML = "";
-  if (round.viz !== "tiles") return;
+  if (!round.viz) return;
   round.cases.forEach(function (c) {
-    if (c.value > 36) return;
+    var fig = figureFor(round, c);
+    if (!fig) return;
     var row = document.createElement("div");
     row.className = "vizrow";
-    var tiles = "";
-    for (var i = 0; i < c.value; i++) tiles += "<span class=\"tile" + (i % 2 ? " alt" : "") + "\"></span>";
-    row.innerHTML = "<span class=\"vizlabel\">" + esc(c.label) + " (" + c.value + ")</span><span class=\"tiles\">" + tiles + "</span>";
+    row.innerHTML = "<span class=\"vizlabel\">" + esc(c.label) + " (" + c.value + ")</span><span class=\"fig\">" + fig + "</span>";
     wrap.appendChild(row);
   });
 }
