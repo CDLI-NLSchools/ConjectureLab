@@ -6,7 +6,7 @@ Math 2201 Unit 7: Inductive and Deductive Reasoning (indicators 2.1, 2.2, 2.3, 2
 
 ## How students use it
 
-- **Explore mode** generates a fresh pattern each round (number sequences, matchstick and tile figures shown as rows of tiles, calendar block sums, and a data table of cans stacked in a pyramid). Students predict the next two cases, write their conjecture, then run the test to compare their predictions with the pattern values and read the rule.
+- **Explore mode** generates a fresh pattern each round (number sequences, matchstick figures drawn as matchsticks and tile figures drawn as tiles, calendar block sums, and a data table of cans stacked in a pyramid). Students predict the next two cases, write their conjecture, then run the test to compare their predictions with the pattern values and read the rule.
 - **Trap Deck mode** presents patterns engineered to break late: circle regions that double five times and then give 31 instead of 32, pancake cuts that stop doubling, and the expression n^2 + n + 11, which gives prime values until n = 10 gives 121. After the break, students write a revised conjecture.
 - **Problem mode** gives guided pattern problems (handshakes, staircase blocks, tiles around a garden border, and a plus-sign cross on the hundreds chart). Students study the small cases, conjecture the value of a larger case, and read feedback that shows the rule and why it works.
 
