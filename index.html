@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conjecture Lab: Math 2201 Unit 7</title>
+<style>
+  :root{
+    --ink:#1c2430; --muted:#5a6572; --accent:#0b5cad; --accent-dark:#084a8a;
+    --ok:#177245; --bad:#b3261e; --card:#ffffff; --bg:#eef2f6; --line:#d4dce4;
+    --soft:#f4f8fc; --warn:#8a5a00;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.45;}
+  .wrap{max-width:779px;margin:0 auto;padding:16px 14px 48px;}
+  header{margin:10px 0 14px;}
+  h1{font-size:1.7rem;margin:0 0 2px;}
+  h2{font-size:1.3rem;margin:0 0 6px;}
+  h3{font-size:1.08rem;margin:14px 0 6px;}
+  .subtitle{color:var(--muted);font-size:1rem;margin:0 0 8px;}
+  .instruction{font-size:1.02rem;margin:0;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px;margin:14px 0;box-shadow:0 1px 3px rgba(20,40,60,.06);}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  .controls .spacer{flex:1;}
+  button{font:inherit;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;
+    padding:9px 16px;border-radius:8px;min-height:44px;font-weight:600;}
+  button:hover{background:var(--accent-dark);}
+  button.secondary{background:#fff;color:var(--accent);}
+  button.secondary:hover{background:var(--soft);}
+  button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent);}
+  button.secondary[aria-pressed="true"]{background:var(--accent);color:#fff;}
+  button:disabled{opacity:.55;cursor:default;}
+  button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #f2b01e;outline-offset:2px;}
+  .modebtns{display:flex;flex-wrap:wrap;gap:8px;}
+  .offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:12px 0;}
+  .offer{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--soft);}
+  .offer h3{margin:0 0 4px;font-size:1.05rem;}
+  .offer p{margin:4px 0;}
+  .price{font-size:1.25rem;font-weight:700;}
+  .field{display:flex;flex-direction:column;gap:3px;margin:10px 0 0;}
+  .field label{font-size:.88rem;color:var(--muted);font-weight:600;}
+  .field input[type=text],.field input[type=number]{padding:9px 10px;font:inherit;font-size:1.02rem;border:1px solid var(--line);
+    border-radius:8px;min-height:44px;width:100%;background:#fff;}
+  textarea{padding:9px 10px;font:inherit;border:1px solid var(--line);border-radius:8px;width:100%;min-height:84px;background:#fff;}
+  .pickrow{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 0;}
+  .pickopt{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:center;background:#fff;font-weight:600;}
+  .pickopt input{width:20px;height:20px;}
+  .checkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 0;}
+  .feedback{margin:12px 0 0;border-radius:10px;padding:12px 14px;display:none;}
+  .feedback.show{display:block;}
+  .feedback.ok{background:#f2faf5;border:1px solid var(--ok);}
+  .feedback.bad{background:#fdf3f2;border:1px solid var(--bad);}
+  .feedback.info{background:var(--soft);border:1px solid var(--line);}
+  .feedback p{margin:4px 0;}
+  .feedback ul{margin:6px 0;padding-left:20px;}
+  .feedback .sumline{font-weight:700;}
+  .feedback.ok .sumline{color:var(--ok);}
+  .feedback.bad .sumline{color:var(--bad);}
+  table.plan{border-collapse:collapse;width:100%;font-size:.95rem;margin:10px 0;}
+  table.plan th,table.plan td{border:1px solid var(--line);padding:5px 8px;text-align:left;}
+  table.plan th{background:var(--soft);}
+  .hidden{display:none !important;}
+  .reqbox{border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:12px 14px;margin:12px 0;}
+  .reqbox p{margin:4px 0;}
+  .bigprompt{font-size:1.1rem;font-weight:600;}
+  .workline{font-size:1.05rem;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+  .note{color:var(--muted);font-size:.94rem;}
+  .vizrow{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;margin:8px 0;}
+  .vizrow .vizlabel{min-width:150px;font-weight:600;font-size:.92rem;}
+  .tiles{display:flex;flex-wrap:wrap;gap:2px;max-width:420px;}
+  .tile{width:14px;height:14px;background:var(--accent);border-radius:2px;display:inline-block;}
+  .tile.alt{background:#f2b01e;}
+  #recordSheet{background:#fff;}
+  #recordSheet table{border-collapse:collapse;width:100%;font-size:.95rem;margin:10px 0;}
+  #recordSheet th,#recordSheet td{border:1px solid var(--line);padding:5px 8px;text-align:left;}
+  #recordSheet th{background:var(--soft);}
+  @media (max-width:680px){ h1{font-size:1.4rem;} .offers{grid-template-columns:1fr;} }
+  @media print{
+    body{background:#fff;}
+    .wrap{max-width:none;padding:0;}
+    body *{visibility:hidden;}
+    #recordSheet,#recordSheet *{visibility:visible;}
+    #recordSheet{position:absolute;left:0;top:0;width:100%;border:none;box-shadow:none;margin:0;padding:0;}
+    #recordSheet textarea{border:1px solid #999;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Conjecture Lab</h1>
+    <p class="subtitle">Math 2201, Unit 7: Inductive and Deductive Reasoning (Indicators 2.1, 2.2, 2.3, 2.9)</p>
+    <p class="instruction">This is practice: explore, conjecture, test, and revise. Nothing is recorded and nothing leaves this page. Look at some cases, state a conjecture in your own words, predict what comes next, then run the test and see whether your conjecture survives.</p>
+  </header>
+
+  <div class="card controls no-print" role="group" aria-label="Choose a mode">
+    <div class="modebtns">
+      <button type="button" id="modeExplore" aria-pressed="true">1. Explore</button>
+      <button type="button" id="modeTrap" class="secondary" aria-pressed="false">2. Trap Deck</button>
+      <button type="button" id="modeProblem" class="secondary" aria-pressed="false">3. Problem Mode</button>
+    </div>
+  </div>
+
+  <main>
+    <!-- Mode 1: Explore -->
+    <section class="card" id="panelExplore" aria-labelledby="eHeading">
+      <h2 id="eHeading">Explore: find a pattern, state a conjecture, test it</h2>
+      <h3 id="eTitle"></h3>
+      <p id="eContext"></p>
+      <div id="eViz"></div>
+      <div id="eCases"></div>
+      <p>Use the cases above. Predict the next two cases, and write your conjecture before you run the test. A conjecture is a statement you believe fits the cases so far. The test checks it against fresh cases.</p>
+      <div class="offers">
+        <div class="field">
+          <label for="ePred1" id="ePred1Label">My prediction for the next case</label>
+          <input type="number" id="ePred1" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="ePred2" id="ePred2Label">My prediction for the case after that</label>
+          <input type="number" id="ePred2" autocomplete="off">
+        </div>
+      </div>
+      <div class="field">
+        <label for="eConjecture">My conjecture (what rule do I think produces these values?)</label>
+        <textarea id="eConjecture" placeholder="Example: Each value is the one before it plus 4, starting from 3."></textarea>
+      </div>
+      <div class="field">
+        <label for="eConstant">What stays constant, or what is the rule? (optional, in your own words)</label>
+        <textarea id="eConstant" placeholder="Example: The step from one case to the next never changes."></textarea>
+      </div>
+      <div class="checkrow">
+        <button type="button" id="eTest">Run the test</button>
+        <button type="button" id="eNew" class="secondary">New pattern</button>
+      </div>
+      <div class="feedback" id="eFeedback" aria-live="polite"></div>
+    </section>
+
+    <!-- Mode 2: Trap Deck -->
+    <section class="card hidden" id="panelTrap" aria-labelledby="tHeading">
+      <h2 id="tHeading">Trap Deck: patterns that break late</h2>
+      <h3 id="tTitle"></h3>
+      <p id="tStory"></p>
+      <div id="tCases"></div>
+      <p id="tTempting"></p>
+      <div id="tViz"></div>
+      <div class="field" style="max-width:340px;">
+        <label for="tPred" id="tPredLabel">My prediction for the next case</label>
+        <input type="number" id="tPred" autocomplete="off">
+      </div>
+      <fieldset style="border:none;padding:0;margin:6px 0 0;" id="tPrimeWrap" class="hidden">
+        <legend style="font-weight:600;">For this case, will the value be prime?</legend>
+        <div class="pickrow">
+          <label class="pickopt"><input type="radio" name="tPrimePick" value="prime"> Prime</label>
+          <label class="pickopt"><input type="radio" name="tPrimePick" value="notprime"> Not prime</label>
+        </div>
+      </fieldset>
+      <div class="field">
+        <label for="tConjecture">My conjecture (what rule do I think is at work?)</label>
+        <textarea id="tConjecture" placeholder="Example: The values double every time, so the next one will double too."></textarea>
+      </div>
+      <div class="checkrow">
+        <button type="button" id="tTest">Run the test</button>
+        <button type="button" id="tNew" class="secondary">New trap</button>
+      </div>
+      <div class="feedback" id="tFeedback" aria-live="polite"></div>
+      <div id="tReviseWrap" class="hidden">
+        <div class="field">
+          <label for="tRevised">My revised conjecture (rewrite your claim so it fits all the cases, including the one that broke it)</label>
+          <textarea id="tRevised" placeholder="Example: The values doubled at first, but that does not continue. I need a different rule."></textarea>
+        </div>
+        <div class="checkrow">
+          <button type="button" id="tSaveRevision" class="secondary">Add my revision to the record</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mode 3: Problem mode -->
+    <section class="card hidden" id="panelProblem" aria-labelledby="pHeading">
+      <h2 id="pHeading">Problem Mode: conjecture a big case from small cases</h2>
+      <h3 id="pTitle"></h3>
+      <p id="pStory"></p>
+      <div id="pCases"></div>
+      <p class="workline" id="pPrompt"></p>
+      <div class="field" style="max-width:340px;">
+        <label for="pInput" id="pInputLabel">My conjectured value for the big case</label>
+        <input type="number" id="pInput" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="pConjecture">My conjecture (what rule connects the small cases to the big case?)</label>
+        <textarea id="pConjecture" placeholder="Example: Each new person adds one more handshake than the person before."></textarea>
+      </div>
+      <div class="checkrow">
+        <button type="button" id="pCheck">Test my conjecture</button>
+        <button type="button" id="pNew" class="secondary">New problem</button>
+      </div>
+      <div class="feedback" id="pFeedback" aria-live="polite"></div>
+    </section>
+
+    <!-- Conjecture Record -->
+    <section class="card" id="recordSheet" aria-labelledby="rsHeading">
+      <h2 id="rsHeading">Conjecture Record</h2>
+      <p class="note no-print">This sheet fills in from the rounds you have checked. Add your own notes, then print it and submit it to the assignment folder if your teacher asks for it.</p>
+      <div id="rsBody">
+        <p>No checked round yet. Run a test above and your work will appear here.</p>
+      </div>
+      <div class="field">
+        <label for="rsNotes">My notes (what did I learn about conjectures and testing them?)</label>
+        <textarea id="rsNotes" placeholder="Example: A pattern can fit many cases and still break on the next one, so I check fresh cases before I trust a conjecture."></textarea>
+      </div>
+      <div class="checkrow no-print">
+        <button type="button" id="printBtn">Print record sheet</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+// ==GENERATOR==
+// Pure generator and checking logic for Conjecture Lab. No DOM access here.
+// Every function takes an rng (a function returning a number in [0, 1)) so the
+// harness can drive generation with a seeded generator. When rng is omitted,
+// Math.random is used.
+
+function makeRng(seed) {
+  var a = (seed >>> 0) || 1;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function rngOr(rng) { return (typeof rng === "function") ? rng : Math.random; }
+function rPick(rng, arr) { return arr[Math.floor(rngOr(rng)() * arr.length)]; }
+function rInt(rng, min, max) { return min + Math.floor(rngOr(rng)() * (max - min + 1)); }
+function rShuffle(rng, arr) {
+  var r = rngOr(rng);
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(r() * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function choose(n, k) {
+  if (k < 0 || k > n) return 0;
+  if (k > n - k) k = n - k;
+  var out = 1;
+  for (var i = 0; i < k; i++) out = out * (n - i) / (i + 1);
+  return Math.round(out);
+}
+function isPrimeValue(n) {
+  if (n < 2) return false;
+  for (var i = 2; i * i <= n; i++) if (n % i === 0) return false;
+  return true;
+}
+
+// ---- Mode 1: Explore pattern families ----
+// Each builder returns a round object with a valueAt(n) function. The cases
+// are the first cases computed from the rule, and nextNs / nextValues hold
+// the two fresh cases the student is asked to predict.
+
+function buildCases(startN, count, valueAt, labelFn) {
+  var cases = [];
+  for (var i = 0; i < count; i++) {
+    var n = startN + i;
+    cases.push({ n: n, label: labelFn ? labelFn(n) : ("Case " + n), value: valueAt(n) });
+  }
+  return cases;
+}
+function finishExplore(round) {
+  var lastN = round.cases[round.cases.length - 1].n;
+  round.nextNs = [lastN + 1, lastN + 2];
+  round.nextValues = [round.valueAt(lastN + 1), round.valueAt(lastN + 2)];
+  round.kind = "explore";
+  return round;
+}
+
+function exploreArithmetic(rng) {
+  var first = rInt(rng, 2, 20), diff = rInt(rng, 2, 9);
+  var valueAt = function (n) { return first + diff * (n - 1); };
+  return finishExplore({
+    familyId: "arithmetic",
+    title: "Number pattern: a steady step",
+    context: "A number pattern where each term comes from the one before it in a steady way.",
+    rule: "Each term adds " + diff + ". The term for case n is " + first + " + " + diff + " x (n - 1).",
+    params: { first: first, diff: diff },
+    viz: null,
+    valueAt: valueAt,
+    cases: buildCases(1, 5, valueAt)
+  });
+}
+function exploreGeometric(rng) {
+  var first = rInt(rng, 1, 3), ratio = rPick(rng, [2, 3]);
+  var valueAt = function (n) { return first * Math.pow(ratio, n - 1); };
+  return finishExplore({
+    familyId: "geometric",
+    title: "Number pattern: a steady multiplier",
+    context: "A number pattern where each term is built from the one before it by the same operation.",
+    rule: "Each term multiplies by " + ratio + ". The term for case n is " + first + " x " + ratio + "^(n - 1).",
+    params: { first: first, ratio: ratio },
+    viz: null,
+    valueAt: valueAt,
+    cases: buildCases(1, 5, valueAt)
+  });
+}
+function exploreSquares(rng) {
+  var start = rInt(rng, 1, 3);
+  var valueAt = function (n) { return n * n; };
+  return finishExplore({
+    familyId: "squares",
+    title: "Number pattern: square numbers",
+    context: "Each value counts the unit squares in a square arrangement with side length n.",
+    rule: "The value for case n is n x n, the square numbers.",
+    params: {},
+    viz: "tiles",
+    valueAt: valueAt,
+    cases: buildCases(start, 5, valueAt)
+  });
+}
+function exploreTriangular(rng) {
+  var valueAt = function (n) { return n * (n + 1) / 2; };
+  return finishExplore({
+    familyId: "triangular",
+    title: "Number pattern: triangular numbers",
+    context: "Each value counts the dots in a triangular arrangement with n rows: 1 dot, then 2, then 3, and so on.",
+    rule: "The value for case n is 1 + 2 + ... + n, which equals n x (n + 1) / 2.",
+    params: {},
+    viz: "tiles",
+    valueAt: valueAt,
+    cases: buildCases(1, 5, valueAt)
+  });
+}
+function exploreAlternating(rng) {
+  var first = rInt(rng, 3, 15), addA = rInt(rng, 2, 6), addB = rInt(rng, 1, 8);
+  if (addB === addA) addB = addA + 1;
+  var valueAt = function (n) {
+    var steps = n - 1, pairs = Math.floor(steps / 2);
+    return first + pairs * (addA + addB) + (steps % 2 === 1 ? addA : 0);
+  };
+  return finishExplore({
+    familyId: "alternating",
+    title: "Number pattern: steps that alternate",
+    context: "Watch the step from one term to the next. It may not be the same step every time, but it may still follow a pattern of its own.",
+    rule: "The steps alternate: add " + addA + ", then add " + addB + ", then add " + addA + " again, and so on.",
+    params: { first: first, addA: addA, addB: addB },
+    viz: null,
+    valueAt: valueAt,
+    cases: buildCases(1, 5, valueAt)
+  });
+}
+function exploreMatchsticks(rng) {
+  var slope = rPick(rng, [2, 3, 4]), intercept = rInt(rng, 1, 3);
+  var valueAt = function (n) { return slope * n + intercept; };
+  return finishExplore({
+    familyId: "figuralLinear",
+    title: "Figural pattern: matchstick figures in a row",
+    context: "Figure n is built from matchsticks. Each new figure shares one side with the figure before it, and the count of matchsticks is recorded for each figure.",
+    rule: "Figure n uses " + slope + " x n + " + intercept + " matchsticks: a starting piece plus " + slope + " new matchsticks for each figure.",
+    params: { slope: slope, intercept: intercept },
+    viz: "tiles",
+    valueAt: valueAt,
+    cases: buildCases(1, 5, valueAt, function (n) { return "Figure " + n; })
+  });
+}
+function exploreTileRow(rng) {
+  var slope = rPick(rng, [3, 4, 5]), intercept = rInt(rng, 0, 2);
+  var valueAt = function (n) { return slope * n + intercept; };
+  return finishExplore({
+    familyId: "figuralLinear",
+    title: "Figural pattern: tiles in a growing frame",
+    context: "A frame is built around a row of tiles. Stage n of the build is recorded, along with the total number of tiles used so far at that stage.",
+    rule: "Stage n uses " + slope + " x n" + (intercept ? " + " + intercept : "") + " tiles in total.",
+    params: { slope: slope, intercept: intercept },
+    viz: "tiles",
+    valueAt: valueAt,
+    cases: buildCases(1, 5, valueAt, function (n) { return "Stage " + n; })
+  });
+}
+function exploreFiguralQuadratic(rng) {
+  var form = rPick(rng, ["square", "rect"]);
+  var valueAt = form === "square"
+    ? function (n) { return n * n; }
+    : function (n) { return n * (n + 1); };
+  return finishExplore({
+    familyId: "figuralQuadratic",
+    title: form === "square" ? "Figural pattern: square tile arrangements" : "Figural pattern: rectangle tile arrangements",
+    context: form === "square"
+      ? "Figure n is a square arrangement of tiles with side length n. The count of tiles is recorded for each figure."
+      : "Figure n is a rectangle of tiles, n tiles wide and one row taller than it is wide. The count of tiles is recorded for each figure.",
+    rule: form === "square" ? "Figure n uses n x n tiles." : "Figure n uses n x (n + 1) tiles.",
+    params: { form: form },
+    viz: "tiles",
+    valueAt: valueAt,
+    cases: buildCases(1, 5, valueAt, function (n) { return "Figure " + n; })
+  });
+}
+function exploreCalendar(rng) {
+  var config = rPick(rng, ["block2x2", "row3", "col3"]);
+  var valueAt, configText;
+  if (config === "block2x2") {
+    valueAt = function (s) { return 4 * s + 16; };
+    configText = "Each case is a 2 by 2 block of days on a calendar page (weeks run in rows of 7). The value is the sum of the four days in the block, and the case number n is the day in the top left corner of the block.";
+  } else if (config === "row3") {
+    valueAt = function (s) { return 3 * s + 3; };
+    configText = "Each case is three days in a row on a calendar page. The value is the sum of the three days, and the case number n is the first day of the three.";
+  } else {
+    valueAt = function (s) { return 3 * s + 21; };
+    configText = "Each case is three days in a column on a calendar page (one day, the day one week later, and the day two weeks later). The value is the sum of the three days, and the case number n is the top day.";
+  }
+  function validStart(s) {
+    if (config === "block2x2") return s + 8 <= 31 && (s - 1) % 7 <= 5;
+    if (config === "row3") return s + 2 <= 31 && (s - 1) % 7 <= 4;
+    return s + 14 <= 31;
+  }
+  var pool = [];
+  for (var s = 1; s <= 31; s++) if (validStart(s)) pool.push(s);
+  var picks = rShuffle(rng, pool.slice()).slice(0, 6).sort(function (a, b) { return a - b; });
+  var caseStarts = picks.slice(0, 4), nextStarts = picks.slice(4, 6);
+  var round = {
+    familyId: "calendarBlock",
+    title: "Calendar pattern: sums that move with the starting day",
+    context: configText,
+    rule: config === "block2x2"
+      ? "The four days are s, s + 1, s + 7 and s + 8, so the sum is 4 x s + 16."
+      : (config === "row3" ? "The three days are s, s + 1 and s + 2, so the sum is 3 x s + 3."
+        : "The three days are s, s + 7 and s + 14, so the sum is 3 x s + 21."),
+    params: { config: config },
+    viz: null,
+    valueAt: valueAt,
+    cases: caseStarts.map(function (st) { return { n: st, label: "Starts at day " + st, value: valueAt(st) }; })
+  };
+  round.kind = "explore";
+  round.nextNs = nextStarts;
+  round.nextValues = nextStarts.map(function (st) { return valueAt(st); });
+  return round;
+}
+function explorePyramidCans(rng) {
+  var valueAt = function (n) { return n * (n + 1) / 2; };
+  return finishExplore({
+    familyId: "pyramidCans",
+    title: "Data table: cans stacked in a pyramid",
+    context: "Cans are stacked in a flat pyramid against a wall: 1 can on the top layer, 2 on the next, 3 on the next, and so on. The table records the total number of cans in a pyramid with n layers.",
+    rule: "A pyramid with n layers holds 1 + 2 + ... + n cans, which equals n x (n + 1) / 2.",
+    params: {},
+    viz: "tiles",
+    valueAt: valueAt,
+    cases: buildCases(1, 5, valueAt, function (n) { return n + (n === 1 ? " layer" : " layers"); })
+  });
+}
+
+var EXPLORE_BUILDERS = [
+  exploreArithmetic, exploreGeometric, exploreSquares, exploreTriangular,
+  exploreAlternating, exploreMatchsticks, exploreTileRow,
+  exploreFiguralQuadratic, exploreCalendar, explorePyramidCans
+];
+function generateExploreRound(rng) {
+  var builder = rPick(rng, EXPLORE_BUILDERS);
+  return builder(rng);
+}
+
+// ---- Mode 2: Trap Deck ----
+// Each trap returns the early cases that suggest a simple claim, the case
+// where the claim breaks, and a valueAt(n) for the true rule.
+
+function trapCircle(rng) {
+  var valueAt = function (n) { return choose(n, 4) + choose(n, 2) + 1; };
+  var first = [];
+  for (var n = 1; n <= 5; n++) first.push({ n: n, label: n + (n === 1 ? " point" : " points"), value: valueAt(n) });
+  return {
+    kind: "trap", trapId: "circleRegions",
+    title: "Trap: regions inside a circle",
+    story: "Place n points on a circle and join every pair of points with a chord. Count the greatest number of regions the chords cut the circle into. The counts for the first five cases look very tidy.",
+    firstCases: first,
+    falseRuleText: "Tempting conjecture: the count doubles every time.",
+    falseRule: "double",
+    breakN: 6, breakValue: valueAt(6), falsePredictionAtBreak: 32,
+    predictN: 6,
+    explain: "At n = 6 the true count is 31, not 32. Drawing all the chords for 6 points and counting the regions gives 31: one chord arrangement falls one region short of doubling.",
+    valueAt: valueAt,
+    params: {}
+  };
+}
+function trapLazyCaterer(rng) {
+  var valueAt = function (n) { return n * (n + 1) / 2 + 1; };
+  var first = [];
+  for (var n = 0; n <= 2; n++) first.push({ n: n, label: n + (n === 1 ? " cut" : " cuts"), value: valueAt(n) });
+  return {
+    kind: "trap", trapId: "lazyCaterer",
+    title: "Trap: pieces of a pancake",
+    story: "A pancake is cut with straight cuts across the whole pancake, arranged to make as many pieces as possible. The counts for 0, 1 and 2 cuts look like the start of a familiar sequence.",
+    firstCases: first,
+    falseRuleText: "Tempting conjecture: the count doubles with each cut (1, 2, 4, then 8).",
+    falseRule: "double",
+    breakN: 3, breakValue: valueAt(3), falsePredictionAtBreak: 8,
+    predictN: 3,
+    explain: "With 3 cuts the greatest number of pieces is 7, not 8. The third cut can cross both earlier cuts and be split into three pieces itself, so it adds 3 pieces to the 4 already there: 4 + 3 = 7.",
+    valueAt: valueAt,
+    params: {}
+  };
+}
+function trapPrimeRun(rng) {
+  var valueAt = function (n) { return n * n + n + 11; };
+  var first = [];
+  for (var n = 1; n <= 9; n++) first.push({ n: n, label: "n = " + n, value: valueAt(n) });
+  return {
+    kind: "trap", trapId: "primeRun",
+    title: "Trap: a formula that keeps giving primes",
+    story: "The expression n^2 + n + 11 is evaluated for n = 1, 2, 3 and so on. Every value in the table is prime. It is tempting to claim the expression always gives a prime.",
+    firstCases: first,
+    falseRuleText: "Tempting conjecture: n^2 + n + 11 is prime for every value of n.",
+    falseRule: "alwaysPrime",
+    breakN: 10, breakValue: valueAt(10), falsePredictionAtBreak: null,
+    predictN: 10,
+    explain: "For n = 10 the value is 121, and 121 = 11 x 11, so it is not prime. Nine prime values in a row felt convincing, and the claim still broke on the very next case.",
+    valueAt: valueAt,
+    params: { a: 1, b: 1, c: 11 }
+  };
+}
+var TRAP_BUILDERS = [trapCircle, trapLazyCaterer, trapPrimeRun];
+function generateTrapRound(rng) {
+  var builder = rPick(rng, TRAP_BUILDERS);
+  return builder(rng);
+}
+
+// ---- Mode 3: Problem mode ----
+
+function problemHandshakes(rng) {
+  var bigN = rInt(rng, 9, 15);
+  var valueAt = function (n) { return n * (n - 1) / 2; };
+  var cases = [];
+  for (var n = 2; n <= 5; n++) cases.push({ n: n, label: n + " people", value: valueAt(n) });
+  return {
+    kind: "problem", problemId: "handshakes",
+    title: "Problem: handshakes at a gathering",
+    story: "At a gathering, every person shakes hands once with every other person. The table shows the total number of handshakes for small groups. Work out the total for a larger group.",
+    cases: cases,
+    bigLabel: "How many handshakes happen with " + bigN + " people?",
+    bigN: bigN,
+    answer: valueAt(bigN),
+    rule: "Each of the n people shakes n - 1 hands, which counts every handshake twice, so the total is n x (n - 1) / 2.",
+    explain: "For " + bigN + " people: " + bigN + " x " + (bigN - 1) + " / 2 = " + valueAt(bigN) + ".",
+    params: { bigN: bigN },
+    valueAt: valueAt
+  };
+}
+function problemStaircase(rng) {
+  var bigN = rInt(rng, 8, 14);
+  var valueAt = function (n) { return n * (n + 1) / 2; };
+  var cases = [];
+  for (var n = 1; n <= 4; n++) cases.push({ n: n, label: n + (n === 1 ? " step" : " steps"), value: valueAt(n) });
+  return {
+    kind: "problem", problemId: "staircase",
+    title: "Problem: blocks in a staircase",
+    story: "A staircase is built from blocks: 1 block in the first column, 2 in the next, 3 in the next, and so on. The table shows the total number of blocks for small staircases.",
+    cases: cases,
+    bigLabel: "How many blocks are in a staircase with " + bigN + " steps?",
+    bigN: bigN,
+    answer: valueAt(bigN),
+    rule: "The total is 1 + 2 + ... + n, which equals n x (n + 1) / 2.",
+    explain: "For " + bigN + " steps: " + bigN + " x " + (bigN + 1) + " / 2 = " + valueAt(bigN) + ".",
+    params: { bigN: bigN },
+    valueAt: valueAt
+  };
+}
+function problemBorder(rng) {
+  var a = rInt(rng, 6, 11), b = rInt(rng, 5, 10);
+  function borderCount(x, y) { return 2 * x + 2 * y - 4; }
+  var small = [[3, 3], [3, 4], [4, 5]];
+  var cases = small.map(function (d) {
+    return { label: d[0] + " by " + d[1] + " garden", value: borderCount(d[0], d[1]), a: d[0], b: d[1] };
+  });
+  return {
+    kind: "problem", problemId: "borderTiles",
+    title: "Problem: tiles around a garden border",
+    story: "Square tiles are laid in a single row all the way around the edge of a rectangular garden, one tile wide, with the corners shared between the two sides that meet there. The table shows tile counts for small gardens.",
+    cases: cases,
+    bigLabel: "How many tiles border a " + a + " by " + b + " garden?",
+    bigA: a, bigB: b,
+    answer: borderCount(a, b),
+    rule: "The border has two sides of length a and two sides of length b, but the four corner tiles belong to two sides each, so the count is 2a + 2b - 4.",
+    explain: "For a " + a + " by " + b + " garden: 2 x " + a + " + 2 x " + b + " - 4 = " + borderCount(a, b) + ".",
+    params: { a: a, b: b },
+    valueAt: function (pair) { return borderCount(pair[0], pair[1]); }
+  };
+}
+function problemHundredsCross(rng) {
+  function validCenter(c) {
+    var col = (c - 1) % 10;
+    return c >= 12 && c <= 89 && col >= 1 && col <= 8;
+  }
+  function pickCenter(used) {
+    var c;
+    do { c = rInt(rng, 12, 89); } while (!validCenter(c) || used.indexOf(c) >= 0);
+    used.push(c);
+    return c;
+  }
+  var used = [];
+  var c1 = pickCenter(used), c2 = pickCenter(used), big = pickCenter(used);
+  var cases = [c1, c2].map(function (c) {
+    return { label: "Cross centred at " + c, value: 5 * c, center: c };
+  });
+  return {
+    kind: "problem", problemId: "hundredsCross",
+    title: "Problem: a cross on the hundreds chart",
+    story: "On a hundreds chart (numbers 1 to 100 in rows of 10), a plus sign covers five numbers: a centre number, the number above it, the number below it, and the numbers to its left and right. The table shows the sum of the five covered numbers for two crosses.",
+    cases: cases,
+    bigLabel: "What is the sum of the cross centred at " + big + "?",
+    bigCenter: big,
+    answer: 5 * big,
+    rule: "The number above the centre is 10 less and the number below is 10 more, so they cancel out around the centre. The number on the left is 1 less and the number on the right is 1 more, so they cancel too. The sum is 5 times the centre.",
+    explain: "Centred at " + big + ": the five numbers are " + (big - 10) + ", " + (big - 1) + ", " + big + ", " + (big + 1) + " and " + (big + 10) + ", which add to 5 x " + big + " = " + (5 * big) + ".",
+    params: { center: big },
+    valueAt: function (c) { return 5 * c; }
+  };
+}
+var PROBLEM_BUILDERS = [problemHandshakes, problemStaircase, problemBorder, problemHundredsCross];
+function generateProblemRound(rng) {
+  var builder = rPick(rng, PROBLEM_BUILDERS);
+  return builder(rng);
+}
+// ==END GENERATOR==
+
+// ---- UI ----
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function parseNum(v) {
+  if (v === null || v === undefined) return NaN;
+  var t = String(v).trim().replace(/,/g, "");
+  if (t === "") return NaN;
+  var n = Number(t);
+  return isNaN(n) ? NaN : n;
+}
+function showFeedback(el, html, cls) {
+  el.innerHTML = html;
+  el.className = "feedback show " + cls;
+}
+function hideFeedback(el) { el.innerHTML = ""; el.className = "feedback"; }
+function casesTable(cases, firstCol, valueCol) {
+  var rows = cases.map(function (c) {
+    return "<tr><td>" + esc(c.label) + "</td><td>" + c.value + "</td></tr>";
+  }).join("");
+  return "<table class=\"plan\"><tr><th>" + esc(firstCol) + "</th><th>" + esc(valueCol) + "</th></tr>" + rows + "</table>";
+}
+
+var state = {
+  mode: "explore",
+  explore: null,
+  exploreRecorded: false,
+  trap: null,
+  trapRecorded: false,
+  trapEntryIndex: -1,
+  problem: null,
+  problemRecorded: false,
+  record: []
+};
+
+function setMode(mode) {
+  state.mode = mode;
+  $("panelExplore").classList.toggle("hidden", mode !== "explore");
+  $("panelTrap").classList.toggle("hidden", mode !== "trap");
+  $("panelProblem").classList.toggle("hidden", mode !== "problem");
+  [["modeExplore", "explore"], ["modeTrap", "trap"], ["modeProblem", "problem"]].forEach(function (pair) {
+    var on = pair[1] === mode;
+    $(pair[0]).setAttribute("aria-pressed", String(on));
+    $(pair[0]).classList.toggle("secondary", !on);
+  });
+}
+$("modeExplore").addEventListener("click", function () { setMode("explore"); });
+$("modeTrap").addEventListener("click", function () { setMode("trap"); });
+$("modeProblem").addEventListener("click", function () { setMode("problem"); });
+
+// ---- Conjecture Record ----
+
+function renderRecord() {
+  var body = $("rsBody");
+  if (!state.record.length) {
+    body.innerHTML = "<p>No checked round yet. Run a test above and your work will appear here.</p>";
+    return;
+  }
+  var rows = state.record.map(function (e) {
+    return "<tr><td>" + esc(e.mode) + "</td><td>" + esc(e.pattern) + "</td><td>" + esc(e.cases) +
+      "</td><td>" + esc(e.conjecture) + "</td><td>" + esc(e.result) + "</td><td>" + esc(e.revision || "Not revised") + "</td></tr>";
+  }).join("");
+  body.innerHTML = "<table><tr><th>Mode</th><th>Pattern or problem</th><th>Cases examined</th><th>Conjecture stated</th><th>Test result</th><th>Revision</th></tr>" + rows + "</table>";
+}
+$("printBtn").addEventListener("click", function () { window.print(); });
+
+// ---- Mode 1 UI: Explore ----
+
+function renderViz(round) {
+  var wrap = $("eViz");
+  wrap.innerHTML = "";
+  if (round.viz !== "tiles") return;
+  round.cases.forEach(function (c) {
+    if (c.value > 36) return;
+    var row = document.createElement("div");
+    row.className = "vizrow";
+    var tiles = "";
+    for (var i = 0; i < c.value; i++) tiles += "<span class=\"tile" + (i % 2 ? " alt" : "") + "\"></span>";
+    row.innerHTML = "<span class=\"vizlabel\">" + esc(c.label) + " (" + c.value + ")</span><span class=\"tiles\">" + tiles + "</span>";
+    wrap.appendChild(row);
+  });
+}
+
+function newExploreRound() {
+  state.explore = generateExploreRound(Math.random);
+  state.exploreRecorded = false;
+  var round = state.explore;
+  $("eTitle").textContent = round.title;
+  $("eContext").textContent = round.context;
+  renderViz(round);
+  $("eCases").innerHTML = casesTable(round.cases, "Case", "Value");
+  $("ePred1Label").textContent = "My prediction for case n = " + round.nextNs[0];
+  $("ePred2Label").textContent = "My prediction for case n = " + round.nextNs[1];
+  $("ePred1").value = "";
+  $("ePred2").value = "";
+  $("eConjecture").value = "";
+  $("eConstant").value = "";
+  hideFeedback($("eFeedback"));
+}
+
+$("eTest").addEventListener("click", function () {
+  var round = state.explore, fb = $("eFeedback");
+  var p1 = parseNum($("ePred1").value), p2 = parseNum($("ePred2").value);
+  if (isNaN(p1) || isNaN(p2)) {
+    showFeedback(fb, "<p class=\"sumline\">Enter both predictions first, then run the test.</p>", "info");
+    return;
+  }
+  var preds = [p1, p2], lines = [], allOk = true, resultBits = [];
+  round.nextNs.forEach(function (n, i) {
+    var actual = round.nextValues[i];
+    if (preds[i] === actual) {
+      lines.push("Case n = " + n + ": correct. Your prediction of " + preds[i] + " matches the pattern value.");
+      resultBits.push("n = " + n + " matched (" + actual + ")");
+    } else {
+      allOk = false;
+      lines.push("Case n = " + n + ": not yet. You predicted " + preds[i] + ", and the pattern gives " + actual + ". Compare this case with the ones in the table and look at where your rule and the values part ways.");
+      resultBits.push("n = " + n + " did not match (predicted " + preds[i] + ", actual " + actual + ")");
+    }
+  });
+  lines.push("The rule behind the pattern: " + round.rule);
+  lines.push(allOk
+    ? "Your conjecture survived this test. That is good evidence for it, and the next fresh case is always a new test."
+    : "If your conjecture does not fit these fresh cases, revise it: adjust the rule so it fits every case, old and new, then test it again on a new pattern.");
+  var head = allOk ? "Both predictions are correct." : "Not yet: one or both predictions missed. Here is why.";
+  showFeedback(fb, "<p class=\"sumline\">" + head + "</p><ul><li>" + lines.join("</li><li>") + "</li></ul>", allOk ? "ok" : "bad");
+  if (!state.exploreRecorded) {
+    var conj = $("eConjecture").value.trim() || "(no conjecture written)";
+    var constant = $("eConstant").value.trim();
+    if (constant) conj += " What stays constant: " + constant;
+    state.record.push({
+      mode: "Explore",
+      pattern: round.title,
+      cases: "Cases n = " + round.cases.map(function (c) { return c.n; }).join(", ") + " shown; tested on n = " + round.nextNs.join(" and "),
+      conjecture: conj,
+      result: resultBits.join("; ") + ".",
+      revision: ""
+    });
+    state.exploreRecorded = true;
+    renderRecord();
+  }
+});
+$("eNew").addEventListener("click", newExploreRound);
+
+// ---- Mode 2 UI: Trap Deck ----
+
+function circleSvg(n) {
+  var cx = 110, cy = 110, rad = 92, pts = [], i, j;
+  for (i = 0; i < n; i++) {
+    var ang = -Math.PI / 2 + i * 2 * Math.PI / n;
+    pts.push([cx + rad * Math.cos(ang), cy + rad * Math.sin(ang)]);
+  }
+  var out = "<svg width=\"220\" height=\"220\" viewBox=\"0 0 220 220\" role=\"img\" aria-label=\"Circle with " + n + " points joined by chords\">";
+  out += "<circle cx=\"110\" cy=\"110\" r=\"92\" fill=\"none\" stroke=\"#0b5cad\" stroke-width=\"2\"/>";
+  for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) {
+    out += "<line x1=\"" + pts[i][0].toFixed(1) + "\" y1=\"" + pts[i][1].toFixed(1) + "\" x2=\"" + pts[j][0].toFixed(1) + "\" y2=\"" + pts[j][1].toFixed(1) + "\" stroke=\"#5a6572\" stroke-width=\"1\"/>";
+  }
+  pts.forEach(function (p) { out += "<circle cx=\"" + p[0].toFixed(1) + "\" cy=\"" + p[1].toFixed(1) + "\" r=\"4\" fill=\"#b3261e\"/>"; });
+  out += "</svg>";
+  return out;
+}
+
+function newTrapRound() {
+  state.trap = generateTrapRound(Math.random);
+  state.trapRecorded = false;
+  state.trapEntryIndex = -1;
+  var trap = state.trap;
+  $("tTitle").textContent = trap.title;
+  $("tStory").textContent = trap.story;
+  $("tCases").innerHTML = casesTable(trap.firstCases, "Case", "Value");
+  $("tTempting").textContent = trap.falseRuleText;
+  $("tPredLabel").textContent = trap.trapId === "primeRun"
+    ? "My prediction for the value at n = " + trap.predictN + " (optional for this trap)"
+    : "My prediction for case n = " + trap.predictN;
+  $("tPred").value = "";
+  $("tConjecture").value = "";
+  $("tRevised").value = "";
+  $("tPrimeWrap").classList.toggle("hidden", trap.trapId !== "primeRun");
+  var radios = document.querySelectorAll("input[name='tPrimePick']");
+  radios.forEach(function (r) { r.checked = false; });
+  $("tViz").innerHTML = trap.trapId === "circleRegions"
+    ? "<p class=\"note\">The diagram shows n = 5, the last case in the table, with every chord drawn.</p>" + circleSvg(5)
+    : "";
+  $("tReviseWrap").classList.add("hidden");
+  hideFeedback($("tFeedback"));
+}
+
+function checkedPrimePick() {
+  var els = document.querySelectorAll("input[name='tPrimePick']");
+  for (var i = 0; i < els.length; i++) if (els[i].checked) return els[i].value;
+  return "";
+}
+
+$("tTest").addEventListener("click", function () {
+  var trap = state.trap, fb = $("tFeedback");
+  var pred = parseNum($("tPred").value);
+  var isPrimeTrap = trap.trapId === "primeRun";
+  if (!isPrimeTrap && isNaN(pred)) {
+    showFeedback(fb, "<p class=\"sumline\">Enter your prediction first, then run the test.</p>", "info");
+    return;
+  }
+  var primePick = isPrimeTrap ? checkedPrimePick() : "";
+  if (isPrimeTrap && !primePick) {
+    showFeedback(fb, "<p class=\"sumline\">Pick whether you think the next value will be prime, then run the test.</p>", "info");
+    return;
+  }
+  var lines = [];
+  if (isPrimeTrap) {
+    if (!isNaN(pred)) {
+      lines.push(pred === trap.breakValue
+        ? "Your predicted value of " + pred + " is correct: the formula does give " + trap.breakValue + " at n = " + trap.breakN + "."
+        : "The formula gives " + trap.breakValue + " at n = " + trap.breakN + ", not " + pred + ".");
+    }
+    lines.push(primePick === "prime"
+      ? "You predicted the value would be prime. It is not: that is the conjecture breaking."
+      : "You doubted the prime pattern, and you were right to: this value is not prime.");
+  } else {
+    lines.push(pred === trap.breakValue
+      ? "Your prediction of " + pred + " is correct. You did not fall for the tempting rule."
+      : "You predicted " + pred + ". The tempting rule suggested " + trap.falsePredictionAtBreak + ", and the true value is " + trap.breakValue + ".");
+  }
+  lines.push(trap.explain);
+  lines.push("Teaching point: confirming cases, however many, never prove a claim. A conjecture is only ever supported by the cases checked so far, and one case that breaks it is enough to show the claim needs revision.");
+  lines.push("Now revise your conjecture below so it fits every case, including this one, and add the revision to your record.");
+  showFeedback(fb, "<p class=\"sumline\">The pattern broke at case n = " + trap.breakN + ".</p><ul><li>" + lines.join("</li><li>") + "</li></ul>", "bad");
+  if (trap.trapId === "circleRegions") {
+    $("tViz").innerHTML = "<p class=\"note\">The diagram shows n = 6, with every chord drawn. Counting the regions gives 31.</p>" + circleSvg(6);
+  }
+  $("tReviseWrap").classList.remove("hidden");
+  if (!state.trapRecorded) {
+    var conj = $("tConjecture").value.trim() || trap.falseRuleText.replace("Tempting conjecture: ", "");
+    state.record.push({
+      mode: "Trap Deck",
+      pattern: trap.title,
+      cases: "Cases n = " + trap.firstCases.map(function (c) { return c.n; }).join(", ") + " shown; broke at n = " + trap.breakN,
+      conjecture: conj,
+      result: "Broke at n = " + trap.breakN + ": true value " + trap.breakValue +
+        (trap.falsePredictionAtBreak !== null ? ", tempting rule predicted " + trap.falsePredictionAtBreak : ", and the value is not prime (121 = 11 x 11)") + ".",
+      revision: ""
+    });
+    state.trapEntryIndex = state.record.length - 1;
+    state.trapRecorded = true;
+    renderRecord();
+  }
+});
+$("tSaveRevision").addEventListener("click", function () {
+  var revised = $("tRevised").value.trim();
+  if (!revised) {
+    showFeedback($("tFeedback"), "<p class=\"sumline\">Write your revised conjecture first, then add it to the record.</p>", "info");
+    return;
+  }
+  if (state.trapEntryIndex >= 0) {
+    state.record[state.trapEntryIndex].revision = revised;
+    renderRecord();
+  }
+  showFeedback($("tFeedback"), "<p class=\"sumline\">Revision added to your Conjecture Record.</p><p>A revised conjecture is a new claim. It fits all the cases so far, and it still needs fresh cases to test it.</p>", "ok");
+});
+$("tNew").addEventListener("click", newTrapRound);
+
+// ---- Mode 3 UI: Problem mode ----
+
+function newProblemRound() {
+  state.problem = generateProblemRound(Math.random);
+  state.problemRecorded = false;
+  var round = state.problem;
+  $("pTitle").textContent = round.title;
+  $("pStory").textContent = round.story;
+  $("pCases").innerHTML = casesTable(round.cases, "Small case", "Value");
+  $("pPrompt").textContent = round.bigLabel;
+  $("pInput").value = "";
+  $("pConjecture").value = "";
+  hideFeedback($("pFeedback"));
+}
+$("pCheck").addEventListener("click", function () {
+  var round = state.problem, fb = $("pFeedback");
+  var v = parseNum($("pInput").value);
+  if (isNaN(v)) {
+    showFeedback(fb, "<p class=\"sumline\">Enter your conjectured value first, then test it.</p>", "info");
+    return;
+  }
+  var ok = v === round.answer;
+  var lines = [];
+  if (ok) {
+    lines.push("Correct: the big case value is " + round.answer + ".");
+  } else {
+    lines.push("Not yet: you entered " + v + ", and the big case value is " + round.answer + ". Here is the rule, so you can see where your conjecture and the small cases part ways.");
+  }
+  lines.push("The rule: " + round.rule);
+  lines.push("Worked big case: " + round.explain);
+  showFeedback(fb, "<p class=\"sumline\">" + (ok ? "Your conjecture held on the big case." : "Not yet: here is why.") + "</p><ul><li>" + lines.join("</li><li>") + "</li></ul>", ok ? "ok" : "bad");
+  if (!state.problemRecorded) {
+    state.record.push({
+      mode: "Problem",
+      pattern: round.title,
+      cases: round.cases.map(function (c) { return c.label + " = " + c.value; }).join("; ") + ". Big case: " + round.bigLabel,
+      conjecture: $("pConjecture").value.trim() || "(no conjecture written)",
+      result: ok ? "Matched: big case value is " + round.answer + "." : "Did not match: entered " + v + ", big case value is " + round.answer + ".",
+      revision: ""
+    });
+    state.problemRecorded = true;
+    renderRecord();
+  }
+});
+$("pNew").addEventListener("click", newProblemRound);
+
+// Start
+newExploreRound();
+newTrapRound();
+newProblemRound();
+renderRecord();
+</script>
+</body>
+</html>
